@@ -48,6 +48,7 @@ const ReviewForm = ({ closeModal, productId, authorId, imgUrl }) => {
 			authorId,
 			productId,
 			timestamp: serverTimestamp(),
+			likeCount: 0,
 		};
 		const feedbackCollection = collection(db, 'feedback');
 		try {

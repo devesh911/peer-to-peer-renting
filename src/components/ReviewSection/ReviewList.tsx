@@ -12,8 +12,6 @@ import {
 	limit,
 	orderBy,
 	query,
-	serverTimestamp,
-	setDoc,
 	where,
 } from 'firebase/firestore';
 import Review from './Review';
@@ -53,22 +51,23 @@ function getReviewQuery(productId: string): Query<DocumentData> {
 	const feedbackRef = collection(db, 'feedback');
 	return query(
 		feedbackRef,
-		where('productId', '==', productId),
 		orderBy('likeCount', 'desc'),
 		orderBy('timestamp', 'desc'),
+		where('productId', '==', productId),
 		limit(3)
 	);
 }
 
 async function fetchReviews(productId: string): Promise<ReviewDetail[]> {
 	const q = getReviewQuery(productId);
+	console.log(q);
 	const snapshot = await getDocs(q);
 
 	const feedbacks: Feedback[] = snapshot.docs.map((doc) => {
 		const data = doc.data() as FeedbackDocumentData;
 		return { id: doc.id, ...data };
 	});
-
+	console.log(feedbacks);
 	return await Promise.all(
 		feedbacks.map(async (feedback) => {
 			const authorDocData = (
@@ -97,10 +96,10 @@ interface ReviewListProps {
 
 const ReviewList: FC<ReviewListProps> = ({ product }) => {
 	const [showReviewForm, setShowReviewForm] = useState(false);
-	// const [reviews, setReviews] = useState<ReviewDetail[]>([]);
-	// const [fetchingReviews, setFetchingReviews] = useState(false);
-	// const [likedReviews, setLikedReviews] = useState<string[]>([]);
-
+	useEffect(() => {
+		console.log('re');
+		fetchReviews(product.id).then((reviews) => console.log(reviews));
+	}, [product.id]);
 	const {
 		data: reviews,
 		isLoading,
@@ -113,6 +112,7 @@ const ReviewList: FC<ReviewListProps> = ({ product }) => {
 	const noReviewFallback = (
 		<Alert text='There are no reviews for this product.' />
 	);
+
 	const nonZeroReviews = reviews && reviews.length > 0;
 	const reviewsJsx = nonZeroReviews
 		? reviews.map((review) => (
